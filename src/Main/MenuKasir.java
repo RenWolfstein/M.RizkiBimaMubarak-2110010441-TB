@@ -382,9 +382,9 @@ public class MenuKasir extends javax.swing.JFrame {
     private void cmbBukuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbBukuActionPerformed
         // TODO add your handling code here:
         // Koding untuk mendapatkan id buku berdasarkan nama buku yang dipilih
-    String selectedNamaBuku = cmbBuku.getSelectedItem().toString();
-    loadIdBuku(selectedNamaBuku);
-    loadHargaBuku(selectedNamaBuku);
+        String selectedNamaBuku = cmbBuku.getSelectedItem().toString();
+        loadIdBuku(selectedNamaBuku);
+        loadHargaBuku(selectedNamaBuku);
     }//GEN-LAST:event_cmbBukuActionPerformed
 
     private void tfJumlahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfJumlahActionPerformed

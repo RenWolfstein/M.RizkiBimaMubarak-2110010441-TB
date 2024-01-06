@@ -1,5 +1,7 @@
 package Main;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -25,6 +27,7 @@ public class MenuBuku extends javax.swing.JFrame {
     public MenuBuku() {
         initComponents();
         initKomponen();
+        initRekam();
         tampilkan();
     }
 
@@ -46,22 +49,6 @@ public class MenuBuku extends javax.swing.JFrame {
         tblBuku.setModel(model);
         pack();
         setLocationRelativeTo(null);
-        
-        tblBuku.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-            if (!e.getValueIsAdjusting()) {
-                int selectedRow = tblBuku.getSelectedRow();
-                if (selectedRow != -1) {
-                    // Mendapatkan nilai id dari baris terpilih dan mengisinya ke dalam tfId
-                    tfId.setText(tblBuku.getValueAt(selectedRow, 0).toString());
-                    tfAuthor.setText(tblBuku.getValueAt(selectedRow, 1).toString());
-                    tfNamaBuku.setText(tblBuku.getValueAt(selectedRow, 2).toString());
-                   tfHarga.setText(tblBuku.getValueAt(selectedRow, 4).toString());
-                }
-            }
-        }
-      });
     }
     
     /**
@@ -320,41 +307,44 @@ public class MenuBuku extends javax.swing.JFrame {
     }//GEN-LAST:event_btnAddActionPerformed
 
     private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
-        int row = tblBuku.getSelectedRow();
+        int selectedRow = tblBuku.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(null, "Pilih baris yang ingin diubah.", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Pilih baris data yang akan diedit");
-        } else {
-            try {
-                String selectedId = tblBuku.getValueAt(row, 0).toString();
-                String idBuku = tfId.getText();
-                String namaBuku = tfNamaBuku.getText();
-                String author = tfAuthor.getText();
-                String date = tglFormat.format(jDateTanggal.getDate());
-                String harga = tfHarga.getText();
+        String idBuku = tfId.getText();
+        String namaBuku = tfNamaBuku.getText();
+        String author = tfAuthor.getText();
+        String date = tglFormat.format(jDateTanggal.getDate());
+        String harga = tfHarga.getText();
 
-                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/tb_buku", "root", "");
-                // Update data berdasarkan NPM yang dipilih
-                String query = "UPDATE tb_buku SET id_buku = ?, nama_buku = ?, author = ?, tanggal_terbit = ?, harga = ?,  WHERE id_buku = ?";
-                PreparedStatement pstmt = connection.prepareStatement(query);
-                pstmt.setString(1, idBuku);
-                pstmt.setString(2, namaBuku);
-                pstmt.setString(3, author);
-                pstmt.setString(4, date);
-                pstmt.setString(5, harga);
-                pstmt.setString(6, selectedId); // NPM yang lama
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_penjualanbuku", "root", "");
+            String query = "UPDATE tb_buku SET nama_buku = ?, author = ?, tanggal_terbit = ?, harga = ?  WHERE id_buku = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, namaBuku);
+                preparedStatement.setString(2, author);
+                preparedStatement.setString(3, date);
+                preparedStatement.setString(4, harga);
+                preparedStatement.setString(5, idBuku);
 
-                int hasil = pstmt.executeUpdate();
+                int rowsAffected = preparedStatement.executeUpdate();
 
-                if (hasil > 0) {
-                    JOptionPane.showMessageDialog(this, "Data berhasil diedit");
-                    tampilkan(); // Memanggil method tampilkan untuk menampilkan data terbaru
+                if (rowsAffected > 0) {
+                    JOptionPane.showMessageDialog(null, "Data berhasil diubah.");
+                    refreshTable();
+                    clearFields();
                 } else {
-                    JOptionPane.showMessageDialog(this, "Data gagal diedit");
+                    JOptionPane.showMessageDialog(null, "Gagal mengubah data.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
             }
+
+            // Close resources
+            connection.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnEditActionPerformed
 
@@ -410,6 +400,24 @@ public class MenuBuku extends javax.swing.JFrame {
 
         // Reload the data from the database
         tampilkan();
+    }
+    
+        private void initRekam() {
+        tblBuku.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+        @Override
+        public void valueChanged(ListSelectionEvent e) {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = tblBuku.getSelectedRow();
+                if (selectedRow != -1) {
+                    // Mendapatkan nilai id dari baris terpilih dan mengisinya ke dalam tfId
+                    tfId.setText(tblBuku.getValueAt(selectedRow, 0).toString());
+                    tfNamaBuku.setText(tblBuku.getValueAt(selectedRow, 1).toString());
+                    tfAuthor.setText(tblBuku.getValueAt(selectedRow, 2).toString());
+                   tfHarga.setText(tblBuku.getValueAt(selectedRow, 4).toString());
+                }
+            }
+        }
+      });
     }
     
     private void tampilkan() {
